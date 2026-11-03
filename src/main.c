@@ -1,54 +1,56 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 #include "jogo.h"
-#include <time.h> // Necessario para o srand(time(NULL))
 
 int main() {
     srand(time(NULL));
     Personagem jogador;
 
+    // 1. Passo 1: Escolha de Personagem
     exibirIntroducao();
     limparTela();
-
     escolherPersonagem(&jogador);
     limparTela();
-
     exibirStatus(&jogador);
     limparTela();
 
-    // 2. Criação do Tabuleiro da Fase 1 (10 casas)
-    // 0 = CASA_VAZIA, 1 = CASA_INIMIGO, 2 = CASA_CHEFE
     int tabuleiro[TAMANHO_TABULEIRO] = {
-        casa_vazia,    // Casa 0 (Inicio)
-        casa_vazia,    // Casa 1
-        casa_inimigo,  // Casa 2
-        casa_vazia,    // Casa 3
-        casa_vazia,    // Casa 4
-        casa_inimigo,  // Casa 5
-        casa_vazia,    // Casa 6
-        casa_vazia,    // Casa 7
-        casa_inimigo,  // Casa 8
-        casa_chefe     // Casa 9 (Final)
-    };
+    // FASE 1 (Casas 0 a 9)
+    casa_vazia, casa_cura, casa_inimigo, casa_vazia, casa_bonus, casa_vazia, casa_inimigo, casa_cura, casa_vazia, casa_chefe,
 
-    int posicaoAtual = 0; // Jogador começa na primeira casa (índice 0)
+    // FASE 2 (Casas 10 a 19)
+    casa_vazia, casa_cura, casa_inimigo, casa_vazia, casa_bonus, casa_vazia, casa_inimigo, casa_cura, casa_vazia, casa_chefe,
 
+    // FASE 3 (Casas 20 a 29)
+    casa_vazia, casa_cura, casa_inimigo, casa_vazia, casa_bonus, casa_vazia, casa_inimigo, casa_cura, casa_vazia, casa_chefe
+};
+
+    int posicaoAtual = 0; // Inicia na Casa 0
+    bool venceuJogo = true;
+
+    // 3. Loop das 3 Fases Sequenciais
+    for (int fase = 1; fase <= 3; fase++) {
+        bool sucesso = executarFase(&jogador, fase, &posicaoAtual, tabuleiro);
+
+        if (!sucesso) {
+            venceuJogo = false;
+            break; // Se morreu, interrompe o loop
+        }
+    }
+
+    // 4. Encerramento do Jogo
     limparTela();
-    printf("=== INICIO DA JORNADA ===\n");
-    exibirTabuleiro(tabuleiro, TAMANHO_TABULEIRO, posicaoAtual);
-    pausar();
-
-    // 3. Simulação de 3 movimentos no tabuleiro
-    for (int rodada = 1; rodada <= 3; rodada++) {
-        limparTela();
-        int passos = rolarDado(6);
-        printf("Rodada %d: Voce rolou um D6 e tirou o numero %d!\n", rodada, passos);
-
-        // Atualiza a posição com o tratamento de limites
-        posicaoAtual = moverJogador(posicaoAtual, passos, TAMANHO_TABULEIRO);
-
-        exibirTabuleiro(tabuleiro, TAMANHO_TABULEIRO, posicaoAtual);
-        pausar();
+    if (venceuJogo) {
+        printf("=========================================================\n");
+        printf("  🏆 VITÓRIA FINAL! VOCÊ SUPEROU AS 3 FASES!\n");
+        printf("  Você derrotou a Guarda Volturi e protegeu Cullens e Quileutes.\n");
+        printf("=========================================================\n\n");
+        exibirStatus(&jogador);
+    } else {
+        printf("=========================================================\n");
+        printf("  ☠️ GAME OVER - Sua jornada terminou na metade do caminho.\n");
+        printf("=========================================================\n");
     }
 
     return 0;
