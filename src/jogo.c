@@ -43,59 +43,61 @@ void escolherPersonagem(Personagem *p) {
 
     p->xp = 0;
     p->nivel = 1;
+    p->usosHabilidade = 2;
+    p->pocoesCura = 0;
 
     switch (opcao) {
         case 1:
             strcpy(p->nome, "Bella Cullen");
             p->classe = class_bella;
-            p->vidaMax = 120;
-            p->vida = 120;
-            p->forca = 10;
-            p->defesa = 14;
-            p->agilidade = 9;
-            p->inteligencia = 12;
-            strcpy(p->arma, "Anel dos Cullen");
-            strcpy(p->armadura, "Casaco de Neve");
+            p->vidaMax = 150;
+            p->vida = 150;
+            p->forca = 15;
+            p->defesa = 20;
+            p->agilidade = 10;
+            p->inteligencia = 10;
+            strcpy(p->arma, "Escudo Mental");
+            strcpy(p->armadura, "Aliança dos Cullen");
             break;
 
         case 2:
             strcpy(p->nome, "Edward Cullen");
             p->classe = class_edward;
-            p->vidaMax = 95;
-            p->vida = 95;
-            p->forca = 9;
-            p->defesa = 8;
+            p->vidaMax = 150;
+            p->vida = 150;
+            p->forca = 15;
+            p->defesa = 12;
             p->agilidade = 15;
             p->inteligencia = 16;
-            strcpy(p->arma, "Brasao dos Cullen");
-            strcpy(p->armadura, "Traje de Caca");
+            strcpy(p->arma, "Telepatia");
+            strcpy(p->armadura, "Aliança dos Cullen");
             break;
 
         case 3:
             strcpy(p->nome, "Jacob Black");
             p->classe = class_jacob;
-            p->vidaMax = 140;
-            p->vida = 140;
-            p->forca = 16;
+            p->vidaMax = 150;
+            p->vida = 150;
+            p->forca = 20;
             p->defesa = 10;
             p->agilidade = 8;
-            p->inteligencia = 6;
+            p->inteligencia = 10;
             strcpy(p->arma, "Amuleto Quileute");
-            strcpy(p->armadura, "Bermuda de Couro");
+            strcpy(p->armadura, "Pele de Lobo");
             break;
 
         default:
             printf("\nOpcao invalida! Selecionando Bella por padrao.\n");
             strcpy(p->nome, "Bella Cullen");
             p->classe = class_bella;
-            p->vidaMax = 120;
-            p->vida = 120;
-            p->forca = 10;
-            p->defesa = 14;
-            p->agilidade = 9;
-            p->inteligencia = 12;
-            strcpy(p->arma, "Anel dos Cullen");
-            strcpy(p->armadura, "Casaco de Neve");
+            p->vidaMax = 150;
+            p->vida = 150;
+            p->forca = 15;
+            p->defesa = 20;
+            p->agilidade = 10;
+            p->inteligencia = 10;
+            strcpy(p->arma, "Escudo Mental");
+            strcpy(p->armadura, "Aliança dos Cullen");
             break;
     }
 }
@@ -168,10 +170,25 @@ Monstro* obterMonstro(int fase, int idMonstro) {
     return m;
 }
 
+int calcularAtaqueComFuria(const Personagem *p) {
+    return p->forca * 2;
+}
+
+int aplicarEscudoBella(int danoInimigo) {
+    int danoReduzido = danoInimigo / 2;
+    return (danoReduzido < 1) ? 1 : danoReduzido;
+}
+
+
 // --- FUNÇÃO PRINCIPAL DE COMBATE ---
 void iniciarCombate(Personagem *p, Monstro *m) {
     int opcao;
     int dano;
+    
+    // Para Bella e Jacob: limite de 2 usos por monstro
+    int usosHabilidadeCombate = 2; 
+    
+    bool escudoAtivo = false; 
 
     limparTela();
     printf("=========================================================\n");
@@ -182,22 +199,35 @@ void iniciarCombate(Personagem *p, Monstro *m) {
 
     while (p->vida > 0 && m->vida > 0) {
         limparTela();
+        escudoAtivo = false;
         
-        // --- 1. HUD DE VIDA ---
+        // --- HUD DE VIDA E HABILIDADE ---
         printf("=========================================================\n");
         printf(" 👤 %-20s | Vida: %3d / %-3d\n", p->nome, p->vida, p->vidaMax);
         printf(" 👾 %-20s | Vida: %3d / %-3d\n", m->nome, m->vida, m->vidaMax);
         printf("=========================================================\n\n");
 
-        // --- 2. MENU DO JOGADOR ---
+        // --- EXIBIÇÃO DA OPÇÃO DO MENU ---
         printf("Escolha sua ação:\n");
-        printf("1. Atacar\n");
-        printf("2. Fugir\n");
-        printf("Opção: ");
-        scanf("%d", &opcao);
-        getchar();
+        printf("1. Atacar Normal\n");
 
-        // --- 3. TURNO DO JOGADOR ---
+        if (p->classe == class_edward) {
+            printf("2. Usar Telepatia / Esquiva Perfeita (%d/2 usos no JOGO)\n", p->usosHabilidade);
+        } else {
+            printf("2. Usar Habilidade Especial (%d/2 usos no combate)\n", usosHabilidadeCombate);
+        }
+        printf("3. Usar Poção de Cura (%d disponíveis)\n", p->pocoesCura); // <--- NOVA OPÇÃO
+        printf("4. Fugir Normal (Chance de falhar)\n");
+        printf("Opção: ");
+        
+        if (scanf("%d", &opcao) != 1) {
+            while (getchar() != '\n'); 
+            opcao = 0;
+        } else {
+            getchar();
+        }
+
+        // --- TURNO DO JOGADOR ---
         if (opcao == 1) {
             dano = (p->forca - m->defesa) + rolarDado(6);
             if (dano < 1) dano = 1;
@@ -205,8 +235,69 @@ void iniciarCombate(Personagem *p, Monstro *m) {
             m->vida -= dano;
             printf("\n⚔️  Você atacou %s e causou %d de dano!\n", m->nome, dano);
             pausar();
-        } 
-        else if (opcao == 2) {
+
+        } else if (opcao == 2) {
+            // LÓGICA DO EDWARD (2x no Jogo Todo)
+            if (p->classe == class_edward) {
+                if (p->usosHabilidade <= 0) {
+                    printf("\n⚠️  Edward já gastou seus 2 usos de Telepatia no jogo! Perdeu o turno.\n");
+                    pausar();
+                } else {
+                    p->usosHabilidade--; // Desconta do total do jogo via ponteiro
+                    printf("\n🔮 [TELEPATIA DE EDWARD] Edward lê os movimentos de %s!\n", m->nome);
+                    printf("🏃 Você esquivou perfeitamente e escapou da luta sem levar nenhum dano!\n");
+                    printf("   (Usos restantes no jogo: %d/2)\n", p->usosHabilidade);
+                    pausar();
+                    return; // Encerra o combate imediatamente sem o monstro contra-atacar
+                }
+            } 
+            // LÓGICA DA BELLA E JACOB (2x por Combate)
+            else {
+                if (usosHabilidadeCombate <= 0) {
+                    printf("\n⚠️  Você já usou sua habilidade 2 vezes neste combate! Perdeu a vez.\n");
+                    pausar();
+                } else {
+                    usosHabilidadeCombate--;
+
+                    if (p->classe == class_bella) {
+                        escudoAtivo = true;
+                        dano = (p->forca - m->defesa) + rolarDado(6);
+                        if (dano < 1) dano = 1;
+                        m->vida -= dano;
+
+                        printf("\n🛡️  [ESCUDO MENTAL] Bella ataca (%d de dano) e ergue uma barreira!\n", dano);
+                        printf("    O próximo dano recebido será reduzido pela METADE!\n");
+                        pausar();
+
+                    } else if (p->classe == class_jacob) {
+                        dano = (calcularAtaqueComFuria(p) - m->defesa) + rolarDado(6);
+                        if (dano < 1) dano = 1;
+                        m->vida -= dano;
+
+                        printf("\n🐺 [FÚRIA QUILEUTE] Jacob ataca com FORÇA DUPLA!\n");
+                        printf("💥 Causou %d de dano em %s!\n", dano, m->nome);
+                        pausar();
+                    }
+                }
+            }
+
+       } else if (opcao == 3) {
+            // USAR POÇÃO DE CURA
+            if (p->pocoesCura <= 0) {
+                printf("\n⚠️ Você não tem nenhuma poção de cura no inventário! Perdeu a vez.\n");
+                pausar();
+            } else {
+                p->pocoesCura--; // Consome 1 poção
+                int cura = 35;   // Quantidade de vida recuperada pela poção
+                p->vida += cura;
+                if (p->vida > p->vidaMax) p->vida = p->vidaMax;
+
+                printf("\n🧪 [POÇÃO USADA] Você bebeu uma poção de cura e recuperou %d de vida!\n", cura);
+                printf("   Vida atual: %d / %d | Poções restantes: %d\n", p->vida, p->vidaMax, p->pocoesCura);
+                pausar();
+            }
+
+        } else if (opcao == 4) { // Mudou de 3 para 4
             if (rolarDado(6) >= 4) {
                 printf("\n🏃 Você conseguiu fugir do combate!\n");
                 pausar();
@@ -215,16 +306,20 @@ void iniciarCombate(Personagem *p, Monstro *m) {
                 printf("\n❌ Falha ao fugir! O inimigo bloqueou sua saída.\n");
                 pausar();
             }
-        } 
-        else {
-            printf("\nOpção inválida! Você perdeu a vez.\n");
+        } else {
+            printf("\nOpção inválida! Você perdeu o turno.\n");
             pausar();
         }
 
-        // --- 4. TURNO DO MONSTRO ---
+        // --- TURNO DO MONSTRO ---
         if (m->vida > 0) {
-            dano = (m->ataque - p->defesa) + rolarDado(1);
+            dano = (m->ataque - p->defesa) + rolarDado(6);
             if (dano < 1) dano = 1;
+
+            if (escudoAtivo) {
+                dano = aplicarEscudoBella(dano);
+                printf("\n🛡️  O Escudo de Bella absorveu o impacto! Dano reduzido para %d.\n", dano);
+            }
 
             p->vida -= dano;
             printf("\n💥 %s atacou você e causou %d de dano!\n", m->nome, dano);
@@ -232,7 +327,7 @@ void iniciarCombate(Personagem *p, Monstro *m) {
         }
     }
 
-    // --- 5. RESULTADO FINAL ---
+    // --- RESULTADO FINAL ---
     limparTela();
     if (p->vida <= 0) {
         printf("=========================================================\n");
@@ -247,7 +342,6 @@ void iniciarCombate(Personagem *p, Monstro *m) {
     }
     pausar();
 }
-
 
 
 // Calcula a nova posicao do jogador e garante que ele nao passe do limite
@@ -319,12 +413,11 @@ bool executarFase(Personagem *p, int numeroFase, int *posicaoAtual, int tabuleir
         int tipoCasa = tabuleiro[*posicaoAtual];
 
         if (tipoCasa == casa_cura) {
-            int cura = 25;
-            p->vida += cura;
-            if (p->vida > p->vidaMax) p->vida = p->vidaMax;
-            printf("\n✨ CASA DE CURA! Você recuperou %d de vida. (Vida: %d/%d)\n", cura, p->vida, p->vidaMax);
+            p->pocoesCura++; // Adiciona a poção ao inventário via ponteiro
+            printf("\n🧪 VOCÊ ENCONTROU UMA POÇÃO DE CURA!\n");
+            printf("   A poção foi guardada na sua bolsa. (Poções no inventário: %d)\n", p->pocoesCura);
             pausar();
-        } 
+        }
         else if (tipoCasa == casa_bonus) {
             int bonusDef = 2;
             p->defesa += bonusDef;

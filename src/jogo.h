@@ -29,6 +29,8 @@ typedef struct {
     int agilidade;
     int inteligencia;
     int xp;
+    int pocoesCura;
+    int usosHabilidade;
     int nivel;
     char arma[40];
     char armadura[40];
@@ -62,3 +64,5 @@ int rolarDado(int lados);
 void exibirTabuleiro(int tabuleiro[], int tamanho, int posicaoJogador);
 int moverJogador(int posicaoAtual, int passos, int tamanho);
 bool executarFase(Personagem *p, int numeroFase, int *posicaoAtual, int tabuleiro[]);
+int calcularAtaqueComFuria(const Personagem *p);
+int aplicarEscudoBella(int danoInimigo);
