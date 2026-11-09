@@ -328,6 +328,7 @@ void iniciarCombate(Personagem *p, Monstro *m) {
     }
 
     // --- RESULTADO FINAL ---
+    // --- RESULTADO FINAL ---
     limparTela();
     if (p->vida <= 0) {
         printf("=========================================================\n");
@@ -338,6 +339,10 @@ void iniciarCombate(Personagem *p, Monstro *m) {
         printf("  🎉 VOCÊ DERROTOU %s!\n", m->nome);
         p->xp += m->xpRecompensa;
         printf("  ✨ Você ganhou %d de XP! (XP Total: %d)\n", m->xpRecompensa, p->xp);
+        
+        // Chamada da recompensa aleatória por ponteiro
+        aplicarBonusAleatorio(p);
+        
         printf("=========================================================\n\n");
     }
     pausar();
@@ -377,7 +382,6 @@ int rolarDado(int lados) {
     return resultado;                           
 }
 
-
 bool executarFase(Personagem *p, int numeroFase, int *posicaoAtual, int tabuleiro[]) {
     // 10 casas por fase: Fase 1 (0..9), Fase 2 (10..19), Fase 3 (20..29)
     int casaInicial = (numeroFase - 1) * 10;
@@ -388,8 +392,30 @@ bool executarFase(Personagem *p, int numeroFase, int *posicaoAtual, int tabuleir
 
     limparTela();
     printf("=========================================================\n");
-    printf("                  INICIANDO FASE %d DE 3\n", numeroFase);
-    printf("        Território: Casas %d a %d no Tabuleiro\n", casaInicial, casaFinal);
+    if (numeroFase == 1) {
+        printf("       FASE 1: DEFESA DA CASA DOS CULLEN                 \n");
+        printf("=========================================================\n");
+        printf("🌲 OBJETIVO: A guarda avançada de Volterra cercou os arredores\n");
+        printf("   de Forks. Você deve conter o avanço inimigo na floresta e\n");
+        printf("   EVITAR QUE OS VOLTURI CHEGUEM À CASA DOS CULLEN para\n");
+        printf("   raptar Renesmee!\n");
+    } else if (numeroFase == 2) {
+        printf("       FASE 2: ROTA DE FUGA DA CIDADE                    \n");
+        printf("=========================================================\n");
+        printf("🚗 OBJETIVO: O cerco se fechou, mas abrimos uma brecha!\n");
+        printf("   Sua missão agora é escoltar e LEVAR RENESMEE PARA UM\n");
+        printf("   LUGAR SEGURO FORA DE FORKS, enfrentando os rastreadores\n");
+        printf("   que tentam cortar a rota de fuga.\n");
+    } else if (numeroFase == 3) {
+        printf("       FASE 3: O CONFRONTO FINAL                         \n");
+        printf("=========================================================\n");
+        printf("❄️ OBJETIVO: Chegou a hora da decisão. Aro e os líderes\n");
+        printf("   Volturi aguardam na clareira. Ocorrerão os CONFRONTOS\n");
+        printf("   FINAIS PARA DEFINIR O DESTINO DE RENESMEE e garantir a\n");
+        printf("   paz definitiva da família.\n");
+    }
+    printf("=========================================================\n");
+    printf("        Território Atual: Casas %d a %d no Tabuleiro\n", casaInicial + 1, casaFinal + 1);
     printf("=========================================================\n\n");
     pausar();
 
@@ -453,7 +479,39 @@ bool executarFase(Personagem *p, int numeroFase, int *posicaoAtual, int tabuleir
         }
     }
 
+    if (numeroFase == 1) {
+        printf("\n🛡️ [SUCESSO FASE 1] O avanço inimigo foi contido! A casa dos Cullen está protegida por enquanto.\n");
+    } else if (numeroFase == 2) {
+        printf("\n🚗 [SUCESSO FASE 2] Você rompeu o cerco e garantiu a saída segura de Renesmee para fora de Forks!\n");
+    } else if (numeroFase == 3) {
+        printf("\n👑 [SUCESSO FINAL] Os líderes Volturi foram derrotados no confronto final! O futuro de Renesmee está a salvo!\n");
+    }
+
     printf("\n🎉 FASE %d CONCLUÍDA COM SUCESSO!\n", numeroFase);
     pausar();
     return true;
+}
+
+void aplicarBonusAleatorio(Personagem *p) {
+    int atributo = rand() % 4;
+    printf("\n✨ Recompensa de Vitória: ");
+    switch (atributo) {
+        case 0:
+            p->forca += 2;
+            printf("+2 de Força! (Total: %d)\n", p->forca);
+            break;
+        case 1:
+            p->defesa += 2;
+            printf("+2 de Defesa! (Total: %d)\n", p->defesa);
+            break;
+        case 2:
+            p->vidaMax += 15;
+            p->vida += 15;
+            printf("+15 de Vida Máxima!\n");
+            break;
+        case 3:
+            p->agilidade += 2;
+            printf("+2 de Agilidade! (Total: %d)\n", p->agilidade);
+            break;
+    }
 }

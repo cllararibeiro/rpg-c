@@ -66,3 +66,4 @@ int moverJogador(int posicaoAtual, int passos, int tamanho);
 bool executarFase(Personagem *p, int numeroFase, int *posicaoAtual, int tabuleiro[]);
 int calcularAtaqueComFuria(const Personagem *p);
 int aplicarEscudoBella(int danoInimigo);
+void aplicarBonusAleatorio(Personagem *p);
