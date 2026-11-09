@@ -328,7 +328,6 @@ void iniciarCombate(Personagem *p, Monstro *m) {
     }
 
     // --- RESULTADO FINAL ---
-    // --- RESULTADO FINAL ---
     limparTela();
     if (p->vida <= 0) {
         printf("=========================================================\n");
