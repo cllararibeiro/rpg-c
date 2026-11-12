@@ -67,3 +67,4 @@ bool executarFase(Personagem *p, int numeroFase, int *posicaoAtual, int tabuleir
 int calcularAtaqueComFuria(const Personagem *p);
 int aplicarEscudoBella(int danoInimigo);
 void aplicarBonusAleatorio(Personagem *p);
+int calcularDano(int ataque, int defesa);

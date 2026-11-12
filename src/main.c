@@ -26,7 +26,7 @@ int main() {
     casa_vazia, casa_cura, casa_inimigo, casa_vazia, casa_bonus, casa_vazia, casa_inimigo, casa_cura, casa_vazia, casa_chefe
 };
 
-    int posicaoAtual = 0; // Inicia na Casa 0
+    int posicaoAtual = -1; // Inicia antes da primeira casa
     bool venceuJogo = true;
 
     // 3. Loop das 3 Fases Sequenciais

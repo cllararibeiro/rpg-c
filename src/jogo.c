@@ -24,13 +24,26 @@ void exibirIntroducao(void) {
 
 void exibirMenuPersonagens(void) {
     limparTela();
-    printf("===========================================\n");
-    printf("       ESCOLHA O SEU PERSONAGEM\n");
-    printf("===========================================\n");
-    printf("1. Bella Cullen (Mãe)  (Escudo Mental / Defesa Alta)\n");
-    printf("2. Edward Cullen (Pai) (Telepatia / Agilidade Alta)\n");
-    printf("3. Jacob Black (Protetor) (Furia Quileute / Forca Alta)\n");
-    printf("===========================================\n");
+    printf("==========================================================================\n");
+    printf("                        ESCOLHA O SEU PERSONAGEM                          \n");
+    printf("==========================================================================\n\n");
+
+    printf("1. BELLA CULLEN (Mae)\n");
+    printf("   Vida: 150 | Forca: 15 | Defesa: 20 | Agilidade: 10 | Inteligencia: 10\n");
+    printf("   Arma: Escudo Mental | Armadura: Alianca dos Cullen\n");
+    printf("   Habilidade: Escudo Mental (Ataca e reduz o proximo dano pela metade - 2x/combate)\n\n");
+
+    printf("2. EDWARD CULLEN (Pai)\n");
+    printf("   Vida: 150 | Forca: 15 | Defesa: 12 | Agilidade: 15 | Inteligencia: 16\n");
+    printf("   Arma: Telepatia | Armadura: Alianca dos Cullen\n");
+    printf("   Habilidade: Telepatia (Esquiva perfeitamente e foge sem tomar dano - 2x/jogo)\n\n");
+
+    printf("3. JACOB BLACK (Protetor)\n");
+    printf("   Vida: 150 | Forca: 20 | Defesa: 10 | Agilidade: 8  | Inteligencia: 10\n");
+    printf("   Arma: Amuleto Quileute | Armadura: Pele de Lobo\n");
+    printf("   Habilidade: Furia Quileute (Ataca com o dobro da forca - 2x/combate)\n\n");
+
+    printf("==========================================================================\n");
     printf("Digite o numero da sua opcao: ");
 }
 
@@ -38,8 +51,13 @@ void escolherPersonagem(Personagem *p) {
     int opcao;
 
     exibirMenuPersonagens();
-    scanf("%d", &opcao);
-    getchar();
+    if (scanf("%d", &opcao) != 1) {
+        while (getchar() != '\n');
+        opcao = 0;
+    } 
+    else {
+        getchar();
+    }
 
     p->xp = 0;
     p->nivel = 1;
@@ -119,22 +137,36 @@ void exibirStatus(const Personagem *p) {
 
 // Exibe o desenho do tabuleiro e a posicao atual do jogador
 void exibirTabuleiro(int tabuleiro[], int tamanho, int posicaoJogador) {
-    printf("\n=== TABULEIRO DA FASE ===\n[ ");
+    printf("\n==================== TABULEIRO DA JORNADA ====================\n");
     for (int i = 0; i < tamanho; i++) {
+        // Inicia cada linha identificando a Fase (casas 0, 10 e 20)
+        if (i % 10 == 0) {
+            printf("Fase %d: ", (i / 10) + 1);
+        }
+
         if (i == posicaoJogador) {
-            printf("[P] "); // Representa o Personagem
+            printf("[P] "); // Personagem
         } else if (tabuleiro[i] == casa_chefe) {
-            printf("[C] "); // Representa o Chefe no final
+            printf("[C] "); // Chefe
         } else if (tabuleiro[i] == casa_inimigo) {
-            printf("[I] "); // Representa um Inimigo no caminho
+            printf("[I] "); // Inimigo
+        } else if (tabuleiro[i] == casa_cura) {
+            printf("[+] "); // Poção de Cura
+        } else if (tabuleiro[i] == casa_bonus) {
+            printf("[*] "); // Bônus de Defesa
         } else {
-            printf("[.] ");   // Casa vazia
+            printf("[.] "); // Casa Vazia
+        }
+
+        // Quebra a linha ao fim de cada bloco de 10 casas
+        if ((i + 1) % 10 == 0) {
+            printf("\n");
         }
     }
-    printf("]\n");
-    printf("Voce esta na casa %d de %d.\n", posicaoJogador + 1, tamanho);
+    printf("==============================================================\n");
+    printf("Legenda: [P] Voce | [I] Inimigo | [C] Chefe | [+] Cura | [*] Bonus | [.] Vazio\n");
+    printf("Posicao atual: Casa %d de %d.\n", posicaoJogador + 1, tamanho);
 }
-
 
 // --- VETORES ESTÁTICOS DE MONSTROS POR FASE ---
 static Monstro monstrosFase1[3] = {
@@ -152,7 +184,7 @@ static Monstro monstrosFase2[3] = {
 static Monstro monstrosFase3[3] = {
     {"Vanguardista de Volterra", "Guerreiro disposto a morrer por Aro.", 90, 90, 28, 15, 4, 120},
     {"Caius Volturi", "Um dos anciãos líderes, implacável.", 120, 120, 32, 18, 4, 160},
-    {"Aro Volturi", "Líder supremo dos Volturi e chefe final.", 160, 160, 38, 20, 5, 300}
+    {"Aro Volturi", "Líder supremo dos Volturi e chefe final.", 160, 160, 30, 15, 5, 300}
 };
 
 // --- FUNÇÃO PARA OBTER PONTEIRO DO MONSTRO E RESETAR VIDA ---
@@ -168,6 +200,11 @@ Monstro* obterMonstro(int fase, int idMonstro) {
     }
 
     return m;
+}
+
+int calcularDano(int ataque, int defesa) {
+    int dano = (ataque - defesa) + rolarDado(20);
+    return (dano < 1) ? 1 : dano;
 }
 
 int calcularAtaqueComFuria(const Personagem *p) {
@@ -216,7 +253,7 @@ void iniciarCombate(Personagem *p, Monstro *m) {
         } else {
             printf("2. Usar Habilidade Especial (%d/2 usos no combate)\n", usosHabilidadeCombate);
         }
-        printf("3. Usar Poção de Cura (%d disponíveis)\n", p->pocoesCura); // <--- NOVA OPÇÃO
+        printf("3. Usar Poção de Cura (%d disponíveis)\n", p->pocoesCura);
         printf("4. Fugir Normal (Chance de falhar)\n");
         printf("Opção: ");
         
@@ -229,8 +266,7 @@ void iniciarCombate(Personagem *p, Monstro *m) {
 
         // --- TURNO DO JOGADOR ---
         if (opcao == 1) {
-            dano = (p->forca - m->defesa) + rolarDado(6);
-            if (dano < 1) dano = 1;
+            dano = calcularDano(p->forca, m->defesa);
 
             m->vida -= dano;
             printf("\n⚔️  Você atacou %s e causou %d de dano!\n", m->nome, dano);
@@ -261,8 +297,7 @@ void iniciarCombate(Personagem *p, Monstro *m) {
 
                     if (p->classe == class_bella) {
                         escudoAtivo = true;
-                        dano = (p->forca - m->defesa) + rolarDado(6);
-                        if (dano < 1) dano = 1;
+                        dano = calcularDano(p->forca, m->defesa);
                         m->vida -= dano;
 
                         printf("\n🛡️  [ESCUDO MENTAL] Bella ataca (%d de dano) e ergue uma barreira!\n", dano);
@@ -270,8 +305,7 @@ void iniciarCombate(Personagem *p, Monstro *m) {
                         pausar();
 
                     } else if (p->classe == class_jacob) {
-                        dano = (calcularAtaqueComFuria(p) - m->defesa) + rolarDado(6);
-                        if (dano < 1) dano = 1;
+                        dano = calcularDano(calcularAtaqueComFuria(p), m->defesa);
                         m->vida -= dano;
 
                         printf("\n🐺 [FÚRIA QUILEUTE] Jacob ataca com FORÇA DUPLA!\n");
@@ -297,7 +331,7 @@ void iniciarCombate(Personagem *p, Monstro *m) {
                 pausar();
             }
 
-        } else if (opcao == 4) { // Mudou de 3 para 4
+        } else if (opcao == 4) { 
             if (rolarDado(6) >= 4) {
                 printf("\n🏃 Você conseguiu fugir do combate!\n");
                 pausar();
@@ -313,8 +347,7 @@ void iniciarCombate(Personagem *p, Monstro *m) {
 
         // --- TURNO DO MONSTRO ---
         if (m->vida > 0) {
-            dano = (m->ataque - p->defesa) + rolarDado(6);
-            if (dano < 1) dano = 1;
+            dano = calcularDano(m->ataque, p->defesa); 
 
             if (escudoAtivo) {
                 dano = aplicarEscudoBella(dano);
@@ -387,7 +420,7 @@ bool executarFase(Personagem *p, int numeroFase, int *posicaoAtual, int tabuleir
     int casaFinal = casaInicial + 9;
     bool chefeDerrotado = false;
     
-    *posicaoAtual = casaInicial;
+    *posicaoAtual = casaInicial - 1;
 
     limparTela();
     printf("=========================================================\n");
@@ -424,13 +457,11 @@ bool executarFase(Personagem *p, int numeroFase, int *posicaoAtual, int tabuleir
         int passos = rolarDado(6);
         printf("🎲 Você jogou o D6 e tirou %d!\n", passos);
         
-        *posicaoAtual += passos;
-        
-        // Trava para não passar da casa do Chefe
-        if (*posicaoAtual >= casaFinal) {
-            *posicaoAtual = casaFinal;
+        if (*posicaoAtual + passos >= casaFinal) {
             printf("\n⛔ Ops, não é possível ultrapassar sem derrotar o chefe final!\n");
         }
+        
+        *posicaoAtual = moverJogador(*posicaoAtual, passos, casaFinal + 1);
 
         exibirTabuleiro(tabuleiro, TAMANHO_TABULEIRO, *posicaoAtual);
         pausar();
